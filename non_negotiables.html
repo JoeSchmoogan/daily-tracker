@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Non-Negotiables</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0c0c0c;
+    --surface: #141414;
+    --border: #222;
+    --accent: #e8ff47;
+    --accent2: #ff4747;
+    --text: #f0f0f0;
+    --muted: #555;
+    --done-bg: #1a1f0a;
+    --done-border: #3a4a10;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    padding: 24px 16px;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  .date-line { font-size: 11px; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 4px; }
+  .title { font-family: 'Bebas Neue', sans-serif; font-size: 52px; letter-spacing: 0.04em; line-height: 1; color: var(--text); margin-bottom: 18px; }
+  .title span { color: var(--accent); }
+
+  .progress-bar-wrap { background: var(--border); height: 3px; border-radius: 2px; overflow: hidden; margin-bottom: 6px; }
+  .progress-bar { height: 100%; background: var(--accent); transition: width 0.4s cubic-bezier(0.4,0,0.2,1); }
+  .progress-label { font-size: 11px; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 24px; }
+
+  .section-label { font-size: 10px; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 10px; margin-top: 20px; }
+
+  .habit-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 16px; border: 1px solid var(--border); border-radius: 6px;
+    margin-bottom: 8px; cursor: pointer; transition: all 0.2s ease;
+    background: var(--surface); user-select: none;
+  }
+  .habit-item:hover { border-color: #333; }
+  .habit-item.done { background: var(--done-bg); border-color: var(--done-border); }
+  .habit-item.done .habit-name { color: #6a7a30; text-decoration: line-through; text-decoration-color: #3a4a10; }
+  .habit-item.done .habit-time { color: #3a4a20; }
+
+  .check {
+    width: 22px; height: 22px; border: 1.5px solid var(--muted); border-radius: 4px;
+    flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s ease; font-size: 13px;
+  }
+  .habit-item.done .check { background: var(--accent); border-color: var(--accent); color: #0c0c0c; }
+
+  .habit-info { flex: 1; }
+  .habit-name { font-size: 13px; font-weight: 500; color: var(--text); letter-spacing: 0.02em; transition: color 0.2s; }
+  .habit-time { font-size: 11px; color: var(--muted); margin-top: 2px; letter-spacing: 0.05em; }
+
+  .habit-tag { font-size: 10px; padding: 2px 8px; border-radius: 3px; letter-spacing: 0.08em; font-weight: 500; }
+  .tag-body { background: #1a1020; color: #a060d0; border: 1px solid #2a1040; }
+  .tag-mind { background: #0a1520; color: #4090d0; border: 1px solid #0a2540; }
+  .tag-biz  { background: #1a2000; color: #90c030; border: 1px solid #2a3500; }
+  .tag-life { background: #201000; color: #d08030; border: 1px solid #402000; }
+
+  .done-banner {
+    display: none; margin-top: 16px; padding: 14px 16px;
+    background: #1a1f0a; border: 1px solid var(--accent); border-radius: 6px;
+    color: var(--accent); text-align: center;
+    font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 0.08em;
+  }
+
+  .streak-bar { margin-top: 28px; padding: 16px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); }
+  .streak-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+  .streak-label { font-size: 10px; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; }
+  .streak-count { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--accent); }
+
+  .streak-dots { display: flex; gap: 6px; }
+  .dot { width: 28px; height: 28px; border-radius: 4px; background: var(--border); font-size: 9px; color: var(--muted); display: flex; align-items: center; justify-content: center; }
+  .dot.active { background: var(--accent); color: #0c0c0c; font-weight: 700; }
+  .dot.partial { background: #1a2000; color: #6a8020; border: 1px solid #3a4a10; }
+
+  .reset-btn {
+    margin-top: 16px; width: 100%; background: transparent; border: 1px solid var(--border);
+    color: var(--muted); font-family: 'DM Mono', monospace; font-size: 11px;
+    letter-spacing: 0.12em; text-transform: uppercase; padding: 10px; border-radius: 6px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .reset-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+</style>
+</head>
+<body>
+
+<div class="date-line" id="date-line"></div>
+<div class="title">NON<span>.</span><br>NEGOTIABLES</div>
+
+<div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar" style="width:0%"></div></div>
+<div class="progress-label" id="progress-label">0 / 8 completed</div>
+
+<div class="section-label">Morning</div>
+
+<div class="habit-item" data-id="wake" onclick="toggle(this)">
+  <div class="check">✓</div>
+  <div class="habit-info"><div class="habit-name">Wake up</div><div class="habit-time">7:00 AM</div></div>
+  <span class="habit-tag tag-life">LIFE</span>
+</div>
+
+<div class="habit-item" data-id="workout" onclick="toggle(this)">
+  <div class="check">✓</div>
+  <div class="habit-info"><div class="habit-name">Workout</div><div class="habit-time">30 mins</div></div>
+  <span class="habit-tag tag-body">BODY</span>
+</div>
+
+<div class="habit-item" data-id="shower" onclick="toggle(this)">
+  <div class="check">✓</div>
+  <div class="habit-info"><div class="habit-name">Shower</div><div class="habit-time">5 mins</div></div>
+  <span class="habit-tag tag-body">BODY</span>
+</div>
+
+<div class="habit-item" data-id="eat" onclick="toggle(this)">
+  <div class="check">✓</div>
+  <div class="habit-info"><div class="habit-name">Eat</div><div class="habit-time">After workout</div></div>
+  <span class="habit-tag tag-body">BODY</span>
+</div>
+
+<div class="habit-item" data-id="read" onclick="toggle(this)">
+  <div class="check">✓</div>
+  <div class="habit-info"><div class="habit-name">Read / Learn</div><div class="habit-time">20 mins</div></div>
+  <span class="habit-tag tag-mind">MIND</span>
+</div>
+
+<div class="section-label">Main Blocks</div>
+
+<div class="habit-item" data-id="school" onclick="toggle(this)">
+  <div class="check">✓</div>
+  <div class="habit-info"><div class="habit-name">School</div><div class="habit-time">Daily block</div></div>
+  <span class="habit-tag tag-mind">MIND</span>
+</div>
+
+<div class="habit-item" data-id="biz" onclick="toggle(this)">
+  <div class="check">✓</div>
+  <div class="habit-info"><div class="habit-name">Biz Work Block + Journal</div><div class="habit-time">90 mins</div></div>
+  <span class="habit-tag tag-biz">BIZ</span>
+</div>
+
+<div class="section-label">Wind Down</div>
+
+<div class="habit-item" data-id="sleep" onclick="toggle(this)">
+  <div class="check">✓</div>
+  <div class="habit-info"><div class="habit-name">Lights out</div><div class="habit-time">12:00 AM</div></div>
+  <span class="habit-tag tag-life">LIFE</span>
+</div>
+
+<div class="done-banner" id="done-banner">🔥 All Non-Negotiables Hit. Don't Break The Chain.</div>
+
+<div class="streak-bar">
+  <div class="streak-top">
+    <span class="streak-label">Current Streak</span>
+    <span class="streak-count" id="streak-count">0 days</span>
+  </div>
+  <div class="streak-dots" id="streak-dots"></div>
+</div>
+
+<button class="reset-btn" onclick="resetDay()">↺ Reset Today</button>
+
+<script>
+  const HABITS = ['wake','workout','shower','eat','read','school','biz','sleep'];
+  const STORAGE_KEY = 'dan_nonneg_v1';
+
+  function getToday() { return new Date().toISOString().slice(0,10); }
+
+  function loadState() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch { return {}; }
+  }
+
+  function saveState(state) { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+  function toggle(el) {
+    const id = el.dataset.id;
+    const state = loadState();
+    const today = getToday();
+    if (!state[today]) state[today] = [];
+    const idx = state[today].indexOf(id);
+    if (idx > -1) state[today].splice(idx, 1);
+    else state[today].push(id);
+    saveState(state);
+    render();
+  }
+
+  function resetDay() {
+    const state = loadState();
+    state[getToday()] = [];
+    saveState(state);
+    render();
+  }
+
+  function getStreak(state) {
+    let streak = 0;
+    for (let i = 1; i <= 60; i++) {
+      const dd = new Date(); dd.setDate(new Date().getDate() - i);
+      const key = dd.toISOString().slice(0,10);
+      if ((state[key] || []).length >= HABITS.length) streak++;
+      else break;
+    }
+    return streak;
+  }
+
+  function render() {
+    const state = loadState();
+    const today = getToday();
+    const done = state[today] || [];
+
+    document.getElementById('date-line').textContent = new Date().toLocaleDateString('en-CA', {weekday:'long', year:'numeric', month:'long', day:'numeric'}).toUpperCase();
+
+    HABITS.forEach(id => {
+      const el = document.querySelector('[data-id="' + id + '"]');
+      if (done.includes(id)) el.classList.add('done');
+      else el.classList.remove('done');
+    });
+
+    const pct = Math.round((done.length / HABITS.length) * 100);
+    document.getElementById('progress-bar').style.width = pct + '%';
+    document.getElementById('progress-label').textContent = done.length + ' / ' + HABITS.length + ' completed — ' + pct + '%';
+
+    document.getElementById('done-banner').style.display = done.length >= HABITS.length ? 'block' : 'none';
+
+    const streak = getStreak(state);
+    document.getElementById('streak-count').textContent = streak + (streak === 1 ? ' day' : ' days');
+
+    const dotsEl = document.getElementById('streak-dots');
+    dotsEl.innerHTML = '';
+    const days = ['SU','MO','TU','WE','TH','FR','SA'];
+    for (let i = 6; i >= 0; i--) {
+      const dd = new Date(); dd.setDate(new Date().getDate() - i);
+      const key = dd.toISOString().slice(0,10);
+      const d = state[key] || [];
+      const dot = document.createElement('div');
+      dot.className = 'dot' + (d.length >= HABITS.length ? ' active' : (d.length > 0 ? ' partial' : ''));
+      dot.textContent = days[dd.getDay()];
+      dotsEl.appendChild(dot);
+    }
+  }
+
+  render();
+</script>
+</body>
+</html>
